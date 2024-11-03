@@ -1,0 +1,18 @@
+# ninja log v5
+33	480	7492613639297902	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	8b40b932efedfe67
+53	1732	7492613651847806	CMakeFiles/echo.dir/ece420_lib.cpp.o	f012870608d6c32d
+2	1800	7492613652537762	CMakeFiles/echo.dir/audio_common.cpp.o	4256e5201dc3d783
+18	1890	7492613653437804	CMakeFiles/echo.dir/audio_player.cpp.o	45229e01f3933834
+41	1950	7492613654027760	CMakeFiles/echo.dir/debug_utils.cpp.o	a5b9c6268d5b8225
+10	1977	7492613654317818	CMakeFiles/echo.dir/audio_recorder.cpp.o	2869ecd21eb61a0b
+26	2027	7492613654787753	CMakeFiles/echo.dir/audio_main.cpp.o	5c6826c4231cfea5
+7	771	7492613887082215	CMakeFiles/echo.dir/ece420_main.cpp.o	79fa41c93d364383
+772	889	7492613888252147	C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	ba5f6b42a3187472
+7	811	7492614720996502	CMakeFiles/echo.dir/ece420_main.cpp.o	79fa41c93d364383
+811	922	7492614722086373	C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	ba5f6b42a3187472
+8	767	7492617330882245	CMakeFiles/echo.dir/ece420_main.cpp.o	79fa41c93d364383
+767	869	7492617331892006	C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	ba5f6b42a3187472
+6	728	7492618595118512	CMakeFiles/echo.dir/ece420_main.cpp.o	79fa41c93d364383
+729	832	7492618596134297	C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	ba5f6b42a3187472
+21	947	7495154375795403	CMakeFiles/echo.dir/ece420_main.cpp.o	79fa41c93d364383
+948	1067	7495154376959275	C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	ba5f6b42a3187472

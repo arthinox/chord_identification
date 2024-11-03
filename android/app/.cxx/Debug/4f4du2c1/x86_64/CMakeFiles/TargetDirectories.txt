@@ -1,0 +1,3 @@
+C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86_64/CMakeFiles/echo.dir
+C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86_64/CMakeFiles/rebuild_cache.dir
