@@ -1,5 +1,5 @@
 # Musical Chord Identification
-Final Project for ECE 420.
+Final Project for ECE 420, created in Fall 2024. <br />
 
 ## Abstract
 Musical chord identification, or the process of correctly labeling three or more notes played
@@ -18,6 +18,6 @@ then evaluate our accuracy under those conditions. Afterward, we will experiment
 feature greater harmonic content (e.g. triangle waves, sawtooth waves) and compare our results.
 
 ## Contributors
-Jiho Choi
-Quentin Mooney
-Ethan Ran
+Jiho Choi <br />
+Quentin Mooney <br />
+Ethan Ran <br />
