@@ -16,3 +16,8 @@ of our project will be the sound synthesis with which we will test our algorithm
 initially test our algorithm on the simplest case—chords comprised of three sine-wave tones, and
 then evaluate our accuracy under those conditions. Afterward, we will experiment with tones that
 feature greater harmonic content (e.g. triangle waves, sawtooth waves) and compare our results.
+
+## Contributors
+Jiho Choi
+Quentin Mooney
+Ethan Ran
