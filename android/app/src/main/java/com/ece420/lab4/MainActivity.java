@@ -31,6 +31,8 @@ import android.os.Handler;
 //import android.support.v4.app.ActivityCompat;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,14 +51,14 @@ public class MainActivity extends Activity
     // UI Variables
     Button   controlButton;
     TextView statusView;
-    static TextView freq_view;
+    static TextView chord_view;
     String  nativeSampleRate;
     String  nativeSampleBufSize;
     boolean supportRecording;
     Boolean isPlaying = false;
     // Static Values
     private static final int AUDIO_ECHO_REQUEST = 0;
-    private static final int FRAME_SIZE = 1024;
+    private static final int FRAME_SIZE = 2048;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +78,8 @@ public class MainActivity extends Activity
         }
 
         // Setup UI
-        freq_view = (TextView)findViewById(R.id.textFrequency);
-        initializeFreqTextBackgroundTask(100);
+        chord_view = (TextView)findViewById(R.id.textChord);
+        initializeChordTextBackgroundTask(100);
     }
     @Override
     protected void onDestroy() {
@@ -224,7 +226,7 @@ public class MainActivity extends Activity
 
     // All this does is calls the UpdateStftTask at a fixed interval
     // http://stackoverflow.com/questions/6531950/how-to-execute-async-task-repeatedly-after-fixed-time-intervals
-    public void initializeFreqTextBackgroundTask(int timeInMs) {
+    public void initializeChordTextBackgroundTask(int timeInMs) {
         final Handler handler = new Handler();
         Timer timer = new Timer();
         TimerTask doAsynchronousTask = new TimerTask() {
@@ -233,10 +235,11 @@ public class MainActivity extends Activity
                 handler.post(new Runnable() {
                     public void run() {
                         try {
-                            UpdateFreqTextTask performFreqTextUpdate = new UpdateFreqTextTask();
-                            performFreqTextUpdate.execute();
+                            UpdateChordTextTask performChordTextUpdate = new UpdateChordTextTask();
+                            performChordTextUpdate.execute();
                         } catch (Exception e) {
                             // TODO Auto-generated catch block
+
                         }
                     }
                 });
@@ -246,23 +249,25 @@ public class MainActivity extends Activity
     }
 
     // UI update
-    private class UpdateFreqTextTask extends AsyncTask<Void, Float, Void> {
+    private class UpdateChordTextTask extends AsyncTask<Void, Integer, Void> {
         @Override
         protected Void doInBackground(Void... params) {
 
             // Update screen, needs to be done on UI thread
-            publishProgress(getFreqUpdate());
+            publishProgress(getChordUpdate());
 
             return null;
         }
 
-        protected void onProgressUpdate(Float... newFreq) {
-            if (newFreq[0] > 0) {
-                freq_view.setText(Long.toString(newFreq[0].longValue()) + " Hz");
-            } else {
-                freq_view.setText("Unvoiced");
-            }
+        protected void onProgressUpdate(String... newChord) {
+            TextView tempView = (TextView) findViewById(R.id.textChord);
+
+            // Updating the TextView
+            tempView.setText(getChordUpdate());
+//            chord_view.setText(getChordUpdate());
+            Log.d("Chord Update: ", getChordUpdate());
         }
+
     }
 
     /*
@@ -286,5 +291,5 @@ public class MainActivity extends Activity
     public static native void startPlay();
     public static native void stopPlay();
 
-    public static native float getFreqUpdate();
+    public static native Integer getChordUpdate();
 }

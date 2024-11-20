@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/x86_64/libecho.so"
+			"path" : "C:/Users/oddly/Documents/GitHub/chord_identification/android/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so"
 		}
 	],
 	"backtrace" : 1,

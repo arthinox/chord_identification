@@ -163,7 +163,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "c:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/.cxx/Debug/4f4du2c1/arm64-v8a"
+			"value" : "c:/Users/oddly/Documents/GitHub/chord_identification/android/app/.cxx/Debug/4f4du2c1/arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -715,7 +715,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/src/main/cpp"
+			"value" : "C:/Users/oddly/Documents/GitHub/chord_identification/android/app/src/main/cpp"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -751,7 +751,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\arm64-v8a"
+			"value" : "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -1023,7 +1023,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\arm64-v8a"
+			"value" : "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
@@ -1295,7 +1295,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/.cxx/Debug/4f4du2c1/arm64-v8a"
+			"value" : "C:/Users/oddly/Documents/GitHub/chord_identification/android/app/.cxx/Debug/4f4du2c1/arm64-v8a"
 		},
 		{
 			"name" : "Project_IS_TOP_LEVEL",
@@ -1319,7 +1319,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/src/main/cpp"
+			"value" : "C:/Users/oddly/Documents/GitHub/chord_identification/android/app/src/main/cpp"
 		},
 		{
 			"name" : "echo_LIB_DEPENDS",

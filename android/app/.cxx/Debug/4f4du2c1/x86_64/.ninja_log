@@ -1,10 +1,10 @@
 # ninja log v5
-40	472	7495152897988443	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	e51fe0b82584b65f
-22	1769	7495152910957880	CMakeFiles/echo.dir/ece420_lib.cpp.o	f42e4db69e7ea1a
-0	1830	7495152911596994	CMakeFiles/echo.dir/audio_common.cpp.o	621a53cdd529dc24
-5	1876	7495152911998355	CMakeFiles/echo.dir/audio_main.cpp.o	22ad0723735c792b
-49	1878	7495152912003507	CMakeFiles/echo.dir/ece420_main.cpp.o	6ef6b703a6150a08
-14	1881	7495152911998355	CMakeFiles/echo.dir/audio_recorder.cpp.o	7f1fbc3b12894b1f
-30	1882	7495152912023797	CMakeFiles/echo.dir/debug_utils.cpp.o	c2e1ab781c2a76f0
-10	1884	7495152912053832	CMakeFiles/echo.dir/audio_player.cpp.o	cc5577abee110ae
-1885	1997	7495152913264996	C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/build/intermediates/cxx/Debug/4f4du2c1/obj/x86_64/libecho.so	61da82535481bb16
+34	400	7537845614406991	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	19c7cc3fc0cce369
+39	1397	7537845624416550	CMakeFiles/echo.dir/ece420_lib.cpp.o	96f13c7e8381efaf
+10	1433	7537845624779828	CMakeFiles/echo.dir/audio_common.cpp.o	eedbf4a5c1a8cd04
+15	1459	7537845625036958	CMakeFiles/echo.dir/audio_recorder.cpp.o	cdf67a5ab11749dd
+0	1474	7537845625137658	CMakeFiles/echo.dir/audio_main.cpp.o	d15fd0cd92ee37cd
+27	1484	7537845625243189	CMakeFiles/echo.dir/audio_player.cpp.o	329d188531ad5240
+6	1490	7537845625308741	CMakeFiles/echo.dir/debug_utils.cpp.o	2612b7a203cd9b11
+21	1734	7537845627865978	CMakeFiles/echo.dir/ece420_main.cpp.o	3becc02073596361
+1734	1875	7537845629320139	C:/Users/oddly/Documents/GitHub/chord_identification/android/app/build/intermediates/cxx/Debug/4f4du2c1/obj/x86_64/libecho.so	b5b2a66821598780
