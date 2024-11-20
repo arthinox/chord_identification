@@ -1,20 +1,20 @@
 {
   "buildFiles": [
-    "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\src\\main\\cpp\\CMakeLists.txt",
-    "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
+    "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\src\\main\\cpp\\CMakeLists.txt",
+    "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
   ],
   "cleanCommandsComponents": [
     [
       "C:\\Users\\oddly\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
-      "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\.cxx\\Debug\\4f4du2c1\\x86",
+      "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\.cxx\\Debug\\4f4du2c1\\x86",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
     "C:\\Users\\oddly\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
-    "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\.cxx\\Debug\\4f4du2c1\\x86",
+    "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\.cxx\\Debug\\4f4du2c1\\x86",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {
@@ -22,7 +22,7 @@
       "toolchain": "toolchain",
       "abi": "x86",
       "artifactName": "echo",
-      "output": "C:\\Users\\oddly\\Documents\\FALL_24\\ECE_420\\lab4\\lab4\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\x86\\libecho.so",
+      "output": "C:\\Users\\oddly\\Documents\\GitHub\\chord_identification\\android\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\x86\\libecho.so",
       "runtimeFiles": []
     }
   },

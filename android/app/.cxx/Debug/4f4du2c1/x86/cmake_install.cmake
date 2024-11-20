@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/src/main/cpp
+# Install script for directory: C:/Users/oddly/Documents/GitHub/chord_identification/android/app/src/main/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/oddly/Documents/FALL_24/ECE_420/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/oddly/Documents/GitHub/chord_identification/android/app/.cxx/Debug/4f4du2c1/x86/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
