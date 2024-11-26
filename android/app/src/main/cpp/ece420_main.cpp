@@ -6,6 +6,9 @@
 #include "ece420_main.h"
 #include "ece420_lib.h"
 #include "kiss_fft/kiss_fft.h"
+#include <string>
+
+using namespace std;
 
 #include <cmath>
 
@@ -175,7 +178,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
    
    string prefix[13] = {" C" , " C#/Db" , " D" , " D#/Eb" , " E" , " F" , " F#/Gb" , " G" , " G#/Ab" , " A" , " A#/Bb" , " B" , " n/a"}; 
    string chord_types[NUM_CHORD_TYPES + 1] = {"  minor" , "  major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , "  n/a" };
-   
    
    int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a' 
    float max_score = 0.0;
