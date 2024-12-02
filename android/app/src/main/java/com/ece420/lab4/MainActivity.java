@@ -249,7 +249,7 @@ public class MainActivity extends Activity
     }
 
     // UI update
-    private class UpdateChordTextTask extends AsyncTask<Void, Integer, Void> {
+    private class UpdateChordTextTask extends AsyncTask<Void, String, Void> {
         @Override
         protected Void doInBackground(Void... params) {
 
@@ -291,5 +291,5 @@ public class MainActivity extends Activity
     public static native void startPlay();
     public static native void stopPlay();
 
-    public static native Integer getChordUpdate();
+    public static native String getChordUpdate();
 }
