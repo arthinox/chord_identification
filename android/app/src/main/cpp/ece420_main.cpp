@@ -6,6 +6,9 @@
 #include "ece420_main.h"
 #include "ece420_lib.h"
 #include "kiss_fft/kiss_fft.h"
+#include <string>
+
+using namespace std;
 
 #include <cmath>
 
@@ -156,58 +159,50 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         value /= Z;
     }
 
-    // Good up until here!
-//    LOGD("C: %f, C#: %f, D: %f, D#: %f, E: %f, F: %f, F#: %f, G: %f", ipcp[0], ipcp[1], ipcp[2], ipcp[3], ipcp[4], ipcp[5], ipcp[6], ipcp[7]);
-    std::vector<int> notes(3);
-//    std::partial_sort_copy(ipcp.begin(), ipcp.end(), notes.begin(), notes.end(), std::greater<float>());
-    // Not good here :(
-    notes = topThreeIndices(ipcp);
+    // Good up until here! 
 
-    std::vector<float> scores(3); // Holds the score each frequency gets if assumed to be the root note
+//Circular shifting and template matching
+   int NUM_CHORD_TYPES = 7;
+   
+           //             [0,        1,      2,      3,    4,       5,       6,     7,     8,      9,      10,      11])    
+           //                                2       m3    M3       4              5              6        b7      M7
+   float templates[NUM_CHORD_TYPES][12] = {
+                          {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
+                          {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
+                          {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
+                          {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
+                          {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
+                          {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
+                          {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
+                         };
+   
+   string prefix[13] = {" C" , " C#/Db" , " D" , " D#/Eb" , " E" , " F" , " F#/Gb" , " G" , " G#/Ab" , " A" , " A#/Bb" , " B" , " n/a"}; 
+   string chord_types[NUM_CHORD_TYPES + 1] = {"  minor" , "  major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , "  n/a" };
+   
+   int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a' 
+   float max_score = 0.0;
+   
+   for (int i = 0; i < 12; i++){
+       for (int j = 0; j < NUM_CHORD_TYPES; j++){
+           float temp = 0.0;
+           for (int x = 0; x < 12; x++){
+                temp += ipcp[(x+i)%12] * templates[j][x];    
+           }
+           if (temp > max_score){
+               max_info[0] = i;
+               max_info[1] = j;
+               max_score = temp;
+           }
+       } 
+   }
 
-    // Interval Points
-    std::vector<float> Interval_Points = {0, 0, 3, 5, 5, 3, 0, 7, 0, 1, 2, 1}; // Holds a score for any given interval. Can be tweaked as wanted
-    // Chord Names
+    //Here are the outputs
+    std::cout<<prefix[max_info[0]]; 
+    std::cout<<chord_types[max_info[1]];
 
-    // Try each note as root note, determine a likelihood score for that configuration
-    for (int i = 0; i < 3; i++) {
-        int d1 = notes[(i + 1) % 3] - notes[i % 3]; // find interval distance 1
-        int d2 = notes[(i + 2) % 3] - notes[i % 3]; // find interval distance 2
-        if (d1 < 0) { // correct d1 interval for direction
-            d1 += 12;
-        }
-        if (d2 < 0) { // correct d2 interval for direction
-            d2 += 12;
-        }
-        scores[i] = Interval_Points[d1] + Interval_Points[d2];
-    }
+        
 
-    // Determine which root note got highest likelihood score
-    float max_score = 0;
-    int max_score_idx = 0;
-    for (int i = 0; i < 3; i++) {
-        if (scores[i] > max_score) {
-            max_score_idx = i;
-            max_score = scores[i];
-        }
-    }
-
-    // Re-calculate intervals for the winning root note
-    int d1 = notes[(max_score_idx + 1) % 3] - notes[max_score_idx % 3]; // find interval distance 1
-    int d2 = notes[(max_score_idx + 2) % 3] - notes[max_score_idx % 3]; // find interval distance 2
-    if (d1 < 0) { // correct d1 interval for direction
-        d1 += 12;
-    }
-    if (d2 < 0) { // correct d2 interval for direction
-        d2 += 12;
-    }
-
-    // Check if major or minor, and select chord name
-    if (d1 == 3 || d2 == 3) {
-        output = Chord_Names[1][notes[max_score_idx]]; // if a minor third is present, select minor chord
-    } else {
-        output = Chord_Names[0][notes[max_score_idx]]; // else select major chord.
-    }
+        
 
 //    char buf[100];
 //    strcpy(buf, "Output: ");
