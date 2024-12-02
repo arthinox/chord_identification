@@ -31,7 +31,7 @@ std::vector<std::vector<std::string>> Chord_Names = {
 
 std::vector<std::string> Note_Names = {"C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"};
 
-std::vector<int> topThreeIndices(std::vector<float> inVector);
+//std::vector<int> topThreeIndices(std::vector<float> inVector);
 
 void ece420ProcessFrame(sample_buf *dataBuf) {
     // Keep in mind, we only have 20ms to process each buffer!
@@ -161,48 +161,53 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
     // Good up until here! 
 
-//Circular shifting and template matching
-   int NUM_CHORD_TYPES = 7;
-   
-           //             [0,        1,      2,      3,    4,       5,       6,     7,     8,      9,      10,      11])    
-           //                                2       m3    M3       4              5              6        b7      M7
-   float templates[NUM_CHORD_TYPES][12] = {
-                          {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
-                          {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
-                          {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
-                          {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
-                          {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
-                          {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
-                          {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
-                         };
-   
-   string prefix[13] = {" C" , " C#/Db" , " D" , " D#/Eb" , " E" , " F" , " F#/Gb" , " G" , " G#/Ab" , " A" , " A#/Bb" , " B" , " n/a"}; 
-   string chord_types[NUM_CHORD_TYPES + 1] = {"  minor" , "  major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , "  n/a" };
-   
-   int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a' 
-   float max_score = 0.0;
-   
-   for (int i = 0; i < 12; i++){
-       for (int j = 0; j < NUM_CHORD_TYPES; j++){
-           float temp = 0.0;
-           for (int x = 0; x < 12; x++){
-                temp += ipcp[(x+i)%12] * templates[j][x];    
-           }
-           if (temp > max_score){
-               max_info[0] = i;
-               max_info[1] = j;
-               max_score = temp;
-           }
-       } 
-   }
+    //Circular shifting and template matching
+    int NUM_CHORD_TYPES = 7;
+
+    std::vector<std::vector<float>> templates = {  // 7 Chord Types
+        {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
+        {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
+        {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
+        {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
+        {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
+        {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
+        {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
+    };
+
+//    float templates[7][12] = {
+//      {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
+//      {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
+//      {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
+//      {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
+//      {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
+//      {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
+//      {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
+//    };
+
+    std::vector<string> prefix = {" C" , " C#/Db" , " D" , " D#/Eb" , " E" , " F" , " F#/Gb" , " G" , " G#/Ab" , " A" , " A#/Bb" , " B" , " n/a"};
+    std::vector<string> chord_types = {"  minor" , "  major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , "  n/a" };
+
+    int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a'
+    float max_score = 0.0;
+
+    for (int i = 0; i < 12; i++){
+        for (int j = 0; j < NUM_CHORD_TYPES; j++){
+            float temp = 0.0;
+            for (int x = 0; x < 12; x++){
+                temp += ipcp[(x+i)%12] * templates[j][x];
+            }
+            if (temp > max_score){
+                max_info[0] = i;
+                max_info[1] = j;
+                max_score = temp;
+            }
+        }
+    }
 
     //Here are the outputs
-    std::cout<<prefix[max_info[0]]; 
-    std::cout<<chord_types[max_info[1]];
-
-        
-
-        
+//    std::cout<<prefix[max_info[0]];
+//    std::cout<<chord_types[max_info[1]];
+    output = prefix[max_info[0]] + chord_types[max_info[1]];
 
 //    char buf[100];
 //    strcpy(buf, "Output: ");
@@ -213,35 +218,35 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 //    LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 }
 
-std::vector<int> topThreeIndices(std::vector<float> inVector) {
-    std::vector<int> maxVector(3, 0);
-    float first_max = 0;
-    float second_max = 0;
-    float third_max = 0;
-
-    for (int i = 0; i < inVector.size(); i++) {
-        if (first_max < inVector[i]) {
-            first_max = inVector[i];
-            maxVector[0] = i;
-        }
-    }
-
-    for (int i = 0; i < inVector.size(); i++) {
-        if ((second_max < inVector[i]) && (second_max <= first_max)){
-            second_max = inVector[i];
-            maxVector[1] = i;
-        }
-    }
-
-    for (int i = 0; i < inVector.size(); i++) {
-        if ((third_max < inVector[i]) && (third_max <= second_max)){
-            third_max = inVector[i];
-            maxVector[2] = i;
-        }
-    }
-
-    return maxVector;
-}
+//std::vector<int> topThreeIndices(std::vector<float> inVector) {
+//    std::vector<int> maxVector(3, 0);
+//    float first_max = 0;
+//    float second_max = 0;
+//    float third_max = 0;
+//
+//    for (int i = 0; i < inVector.size(); i++) {
+//        if (first_max < inVector[i]) {
+//            first_max = inVector[i];
+//            maxVector[0] = i;
+//        }
+//    }
+//
+//    for (int i = 0; i < inVector.size(); i++) {
+//        if ((second_max < inVector[i]) && (second_max <= first_max)){
+//            second_max = inVector[i];
+//            maxVector[1] = i;
+//        }
+//    }
+//
+//    for (int i = 0; i < inVector.size(); i++) {
+//        if ((third_max < inVector[i]) && (third_max <= second_max)){
+//            third_max = inVector[i];
+//            maxVector[2] = i;
+//        }
+//    }
+//
+//    return maxVector;
+//}
 
 JNIEXPORT jstring JNICALL
 Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass) {
