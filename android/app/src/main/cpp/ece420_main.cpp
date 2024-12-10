@@ -184,13 +184,13 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     // Good up until here!
 
     //Circular shifting and template matching
-    int NUM_CHORD_TYPES = 7;
+    int NUM_CHORD_TYPES = 6;
 
     vector<vector<float>> templates = {  // 7 Chord Types
             {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
             {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
             {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
-            {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
+            // {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
             {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
             {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
             {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25} //min7
@@ -207,7 +207,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 //    };
 
     vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "n/a"};
-    vector<string> chord_types = {" minor" , " major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , " " };
+    vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
 
     int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a'
     float max_score = 0.0;
@@ -241,7 +241,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
     // Find mode of each queue
     vector<int> hist1(13);
-    vector<int> hist2(8);
+    vector<int> hist2(NUM_CHORD_TYPES + 1);
     queue<int> temp1(last_prefixes);
     queue<int> temp2(last_chord_types);
     for (int i=0; i < (int)last_prefixes.size(); i++) {
@@ -257,6 +257,10 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     int mode_chord_type = distance(hist2.begin(),max_element(hist2.begin(), hist2.end()));
 
     output = prefix[mode_prefix] + chord_types[mode_chord_type];
+
+    if (chord_types[mode_chord_type] == " sus2") {
+        output = output + " or " + prefix[(mode_prefix + 7) % 12] + " sus4";
+    }
 
 //    char buf[100];
 //    strcpy(buf, "Output: ");
