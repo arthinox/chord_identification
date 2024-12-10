@@ -166,7 +166,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
-    if (Z < 75.0) {
+    if (Z < 80.0) {
         max_info[0] = 12;
         max_info[1] = NUM_CHORD_TYPES;
     }
