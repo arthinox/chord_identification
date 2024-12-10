@@ -17,6 +17,9 @@ using namespace std;
 extern "C" {
 JNIEXPORT jstring JNICALL
 Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass);
+
+JNIEXPORT jstring JNICALL
+Java_com_ece420_lab4_MainActivity_getNotesUpdate(JNIEnv *env, jclass);
 }
 
 // Student Variables
@@ -26,9 +29,24 @@ Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass);
 #define BUFFER_SIZE (2 * FRAME_SIZE)
 float bufferIn[BUFFER_SIZE] = {};
 string output;
+string notes;
 queue<int> last_prefixes;
 queue<int> last_chord_types;
-vector<string> Note_Names = {"C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"};
+
+#define NUM_CHORD_TYPES 6
+#define F_REF 130.81278265      // Middle C (C3)
+vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "n/a"};
+vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
+
+vector<vector<float>> templates = {  // 7 Chord Types
+        {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
+        {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
+        {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
+        // {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
+        {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
+        {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
+        {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25} //min7
+};
 
 void ece420ProcessFrame(sample_buf *dataBuf) {
     // Keep in mind, we only have 20ms to process each buffer!
@@ -92,6 +110,8 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
+    // ************** HPS AND IPCP **************** //
+
     vector<float> hps(half_N, 0.0);
 
     for (int i=0; i < half_N; i++) {
@@ -109,12 +129,11 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     }
 
     // Calculate IPCP
-    float f_ref = 130.81278265; // Define middle C (C3) as our reference freq.
     vector<float> ipcp(12, 0.0);
 
     for (int k = 1; k < half_N; k++) {
         // Find p(k)
-        int p_k = int(round(12 * log2((float(k) / float(half_N)) * (F_S / f_ref)))) % 12;
+        int p_k = int(round(12 * log2((float(k) / float(half_N)) * (F_S / F_REF)))) % 12;
         // Add squared amplitude to corresponding bin
         ipcp[p_k] += hps[k] * hps[k];
     }
@@ -129,21 +148,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         value /= Z;
     }
 
-    //Circular shifting and template matching
-    int NUM_CHORD_TYPES = 6;
-
-    vector<vector<float>> templates = {  // 7 Chord Types
-            {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
-            {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
-            {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
-            // {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
-            {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
-            {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
-            {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25} //min7
-    };
-
-    vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "n/a"};
-    vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
+    // ************** TEMPLATE MATCHING **************** //
 
     int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a'
     float max_score = 0.0;
@@ -161,6 +166,8 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
             }
         }
     }
+
+    // ************** PROCESSING FOR DISPLAY **************** //
 
     // Output mode of last 6 measurements for stability
     if ((int)last_prefixes.size() >= 6) {
@@ -191,11 +198,23 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     int mode_prefix = distance(hist1.begin(),max_element(hist1.begin(), hist1.end()));
     int mode_chord_type = distance(hist2.begin(),max_element(hist2.begin(), hist2.end()));
 
+    // Output chord name
     output = prefix[mode_prefix] + chord_types[mode_chord_type];
 
     if (chord_types[mode_chord_type] == " sus2") {
         output = output + " or " + prefix[(mode_prefix + 7) % 12] + " sus4";
     }
+
+    // Output notes
+    int note1 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
+    ipcp[note1] = -10;
+    int note2 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
+    ipcp[note2] = -10;
+    int note3 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
+    ipcp[note3] = -10;
+    int note4 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
+
+    notes = prefix[note1] + ", " + prefix[note2] + ", " + prefix[note3] + ", " + prefix[note4];
 
 //    char buf[100];
 //    strcpy(buf, "Output: ");
@@ -206,9 +225,19 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 }
 
+extern "C" {
 JNIEXPORT jstring JNICALL
 Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass) {
     jstring tempString = env->NewStringUTF(output.c_str());
 
     return tempString;
 }
+
+JNIEXPORT jstring JNICALL
+Java_com_ece420_lab4_MainActivity_getNotesUpdate(JNIEnv *env, jclass) {
+    jstring tempString = env->NewStringUTF(notes.c_str());
+
+    return tempString;
+}
+}
+
