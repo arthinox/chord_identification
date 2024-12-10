@@ -8,6 +8,8 @@
 #include "kiss_fft/kiss_fft.h"
 #include <string>
 #include <queue>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -32,12 +34,15 @@ string output;
 string notes;
 queue<int> last_prefixes;
 queue<int> last_chord_types;
+int targetChordCount = 0;
+int totalChordCount = 0;
+
 
 #define NUM_CHORD_TYPES 6
 #define F_REF 130.81278265      // Middle C (C3)
 vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "No chord detected"};
 vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
-
+vector<string> allChords = {};
 vector<vector<float>> templates = {  // 7 Chord Types
         {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
         {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
@@ -212,7 +217,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     if (chord_types[mode_chord_type] == " sus2") {
         output = output + " or " + prefix[(mode_prefix + 7) % 12] + " sus4";
     }
-
+    allChords.push_back(output);
     // Output notes
     int note1 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
     ipcp[note1] = -10;
@@ -221,9 +226,10 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     int note3 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
     ipcp[note3] = -10;
     int note4 = distance(ipcp.begin(),max_element(ipcp.begin(), ipcp.end()));
-
     notes = prefix[note1] + ", " + prefix[note2] + ", " + prefix[note3] + ", " + prefix[note4];
 
+//    std::string filePath = "/sdcard/allChords.csv";;
+//    writeVectorToCSV(allChords, filePath);
 //    char buf[100];
 //    strcpy(buf, "Output: ");
 //    strcat(buf, output.c_str());
@@ -231,7 +237,19 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     // ********************* END YOUR CODE HERE ************************* //
     gettimeofday(&end, NULL);
     LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
+    // Accuracy
+    totalChordCount++;
+    //Modify if statement to test a chord
+    if (output == "C#/Db minor") {
+        targetChordCount++;
+    }
+    float accuracy = (float(targetChordCount) / totalChordCount) * 100;
+    LOGD("Accuracy: %.2f%%", accuracy);
 }
+
+
+
+
 
 extern "C" {
 JNIEXPORT jstring JNICALL
@@ -247,4 +265,6 @@ Java_com_ece420_lab4_MainActivity_getNotesUpdate(JNIEnv *env, jclass) {
 
     return tempString;
 }
+
+
 }
