@@ -19,55 +19,6 @@ JNIEXPORT jstring JNICALL
 Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass);
 }
 
-// Without circular buffer
-
-//// Student Variables
-//#define F_S 48000
-//#define FRAME_SIZE 2048
-//#define VOICED_THRESHOLD 123456789  // Find your own threshold
-//string output;
-//
-//vector<vector<string>> Chord_Names = {
-//        {"C Major", "C#/Db Major", "D Major", "D#/Eb Major", "E Major", "F Major", "F#/Gb Major", "G Major", "G#/Ab Major", "A Major", "A#/Bb Major", "B Major"},
-//        {"C Minor", "C#/Db Minor", "D Minor", "D#/Eb Minor", "E Minor", "F Minor", "F#/Gb Minor", "G Minor", "G#/Ab Minor", "A Minor", "A#/Bb Minor", "B Minor"}
-//};
-//
-//vector<string> Note_Names = {"C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"};
-//
-////vector<int> topThreeIndices(vector<float> inVector);
-//
-//void ece420ProcessFrame(sample_buf *dataBuf) {
-//    struct timeval start;
-//    struct timeval end;
-//    gettimeofday(&start, NULL);
-//
-//    // Data is encoded in signed PCM-16, little-endian, mono
-//    float bufferIn[FRAME_SIZE];
-//    for (int i = 0; i < FRAME_SIZE; i++) {
-//        int16_t val = ((uint16_t) dataBuf->buf_[2 * i]) | (((uint16_t) dataBuf->buf_[2 * i + 1]) << 8);
-//        bufferIn[i] = (float) val;
-//    }
-//
-//    int N = FRAME_SIZE;
-//    // Declare fftOut outside the if block to make it accessible later
-//    kiss_fft_cpx dataIn[FRAME_SIZE] = {};
-//    kiss_fft_cpx fftOut[FRAME_SIZE] = {};  // Declare fftOut here
-//
-//    // Fill dataIn
-//    for (int i = 0; i < N; i++) {
-//        dataIn[i].r = bufferIn[i];
-//        dataIn[i].i = 0;
-//    }
-//
-//    kiss_fft_cfg cfg1 = kiss_fft_alloc(N, 0, nullptr, nullptr);
-//
-//    // Compute FFT
-//    kiss_fft(cfg1, dataIn, fftOut);
-//
-//    free(cfg1);
-
-// With circular buffer
-
 // Student Variables
 #define F_S 48000
 #define FRAME_SIZE 2048
@@ -141,8 +92,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
-    // If denoised FFT has data type kiss_fft_cpx
-
     vector<float> hps(half_N, 0.0);
 
     for (int i=0; i < half_N; i++) {
@@ -176,12 +125,9 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     }
     float Z = *max_element(ipcp.begin(), ipcp.end());
 
-
     for (auto& value : ipcp) {
         value /= Z;
     }
-
-    // Good up until here!
 
     //Circular shifting and template matching
     int NUM_CHORD_TYPES = 6;
@@ -195,16 +141,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
             {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
             {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25} //min7
     };
-
-//    float templates[7][12] = {
-//      {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
-//      {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
-//      {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
-//      {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
-//      {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
-//      {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
-//      {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
-//    };
 
     vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "n/a"};
     vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
@@ -226,8 +162,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
-    // Push to queues
-
+    // Output mode of last 6 measurements for stability
     if ((int)last_prefixes.size() >= 6) {
         last_prefixes.pop();
         last_chord_types.pop();
