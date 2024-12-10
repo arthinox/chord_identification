@@ -35,7 +35,7 @@ queue<int> last_chord_types;
 
 #define NUM_CHORD_TYPES 6
 #define F_REF 130.81278265      // Middle C (C3)
-vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "n/a"};
+vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "No chord detected"};
 vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
 
 vector<vector<float>> templates = {  // 7 Chord Types
@@ -143,7 +143,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         value = sqrt(value);
     }
     float Z = *max_element(ipcp.begin(), ipcp.end());
-
     for (auto& value : ipcp) {
         value /= Z;
     }
@@ -165,6 +164,11 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
                 max_score = temp;
             }
         }
+    }
+
+    if (Z < 75.0) {
+        max_info[0] = 12;
+        max_info[1] = NUM_CHORD_TYPES;
     }
 
     // ************** PROCESSING FOR DISPLAY **************** //
@@ -199,6 +203,10 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     int mode_chord_type = distance(hist2.begin(),max_element(hist2.begin(), hist2.end()));
 
     // Output chord name
+    if (mode_prefix == 12) {
+        mode_chord_type = NUM_CHORD_TYPES;
+    }
+
     output = prefix[mode_prefix] + chord_types[mode_chord_type];
 
     if (chord_types[mode_chord_type] == " sus2") {
@@ -240,4 +248,3 @@ Java_com_ece420_lab4_MainActivity_getNotesUpdate(JNIEnv *env, jclass) {
     return tempString;
 }
 }
-
