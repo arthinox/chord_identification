@@ -7,6 +7,7 @@
 #include "ece420_lib.h"
 #include "kiss_fft/kiss_fft.h"
 #include <string>
+#include <queue>
 
 using namespace std;
 
@@ -18,20 +19,65 @@ JNIEXPORT jstring JNICALL
 Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass);
 }
 
+// Without circular buffer
+
+//// Student Variables
+//#define F_S 48000
+//#define FRAME_SIZE 2048
+//#define VOICED_THRESHOLD 123456789  // Find your own threshold
+//string output;
+//
+//vector<vector<string>> Chord_Names = {
+//        {"C Major", "C#/Db Major", "D Major", "D#/Eb Major", "E Major", "F Major", "F#/Gb Major", "G Major", "G#/Ab Major", "A Major", "A#/Bb Major", "B Major"},
+//        {"C Minor", "C#/Db Minor", "D Minor", "D#/Eb Minor", "E Minor", "F Minor", "F#/Gb Minor", "G Minor", "G#/Ab Minor", "A Minor", "A#/Bb Minor", "B Minor"}
+//};
+//
+//vector<string> Note_Names = {"C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"};
+//
+////vector<int> topThreeIndices(vector<float> inVector);
+//
+//void ece420ProcessFrame(sample_buf *dataBuf) {
+//    struct timeval start;
+//    struct timeval end;
+//    gettimeofday(&start, NULL);
+//
+//    // Data is encoded in signed PCM-16, little-endian, mono
+//    float bufferIn[FRAME_SIZE];
+//    for (int i = 0; i < FRAME_SIZE; i++) {
+//        int16_t val = ((uint16_t) dataBuf->buf_[2 * i]) | (((uint16_t) dataBuf->buf_[2 * i + 1]) << 8);
+//        bufferIn[i] = (float) val;
+//    }
+//
+//    int N = FRAME_SIZE;
+//    // Declare fftOut outside the if block to make it accessible later
+//    kiss_fft_cpx dataIn[FRAME_SIZE] = {};
+//    kiss_fft_cpx fftOut[FRAME_SIZE] = {};  // Declare fftOut here
+//
+//    // Fill dataIn
+//    for (int i = 0; i < N; i++) {
+//        dataIn[i].r = bufferIn[i];
+//        dataIn[i].i = 0;
+//    }
+//
+//    kiss_fft_cfg cfg1 = kiss_fft_alloc(N, 0, nullptr, nullptr);
+//
+//    // Compute FFT
+//    kiss_fft(cfg1, dataIn, fftOut);
+//
+//    free(cfg1);
+
+// With circular buffer
+
 // Student Variables
 #define F_S 48000
 #define FRAME_SIZE 2048
 #define VOICED_THRESHOLD 123456789  // Find your own threshold
-std::string output;
-
-std::vector<std::vector<std::string>> Chord_Names = {
-        {"C Major", "C#/Db Major", "D Major", "D#/Eb Major", "E Major", "F Major", "F#/Gb Major", "G Major", "G#/Ab Major", "A Major", "A#/Bb Major", "B Major"},
-        {"C Minor", "C#/Db Minor", "D Minor", "D#/Eb Minor", "E Minor", "F Minor", "F#/Gb Minor", "G Minor", "G#/Ab Minor", "A Minor", "A#/Bb Minor", "B Minor"}
-};
-
-std::vector<std::string> Note_Names = {"C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"};
-
-//std::vector<int> topThreeIndices(std::vector<float> inVector);
+#define BUFFER_SIZE (2 * FRAME_SIZE)
+float bufferIn[BUFFER_SIZE] = {};
+string output;
+queue<int> last_prefixes;
+queue<int> last_chord_types;
+vector<string> Note_Names = {"C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"};
 
 void ece420ProcessFrame(sample_buf *dataBuf) {
     // Keep in mind, we only have 20ms to process each buffer!
@@ -39,42 +85,22 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     struct timeval end;
     gettimeofday(&start, NULL);
 
-    // Data is encoded in signed PCM-16, little-endian, mono
-    float bufferIn[FRAME_SIZE];
+    // Shift old data back to make room for the new data
     for (int i = 0; i < FRAME_SIZE; i++) {
-        int16_t val = ((uint16_t) dataBuf->buf_[2 * i]) | (((uint16_t) dataBuf->buf_[2 * i + 1]) << 8);
-        bufferIn[i] = (float) val;
+        bufferIn[i] = bufferIn[i + FRAME_SIZE - 1];
     }
 
-    // ********************** PITCH DETECTION ************************ //
-    // In this section, you will be computing the autocorrelation of bufferIn
-    // and picking the delay corresponding to the best match. Naively computing the
-    // autocorrelation in the time domain is an O(N^2) operation and will not fit
-    // in your timing window.
-    //
-    // First, you will have to detect whether or not a signal is voiced.
-    // We will implement a simple voiced/unvoiced detector by thresholding
-    // the power of the signal.
-    //
-    // Next, you will have to compute autocorrelation in its O(N logN) form.
-    // Autocorrelation using the frequency domain is given as:
-    //
-    //  autoc = ifft(fft(x) * conj(fft(x)))
-    //
-    // where the fft multiplication is element-wise.
-    //
-    // You will then have to find the index corresponding to the maximum
-    // of the autocorrelation. Consider that the signal is a maximum at idx = 0,
-    // where there is zero delay and the signal matches perfectly.
-    //
-    // Finally, write the variable "lastFreqDetected" on completion. If voiced,
-    // write your determined frequency. If unvoiced, write -1.
-    // ********************* START YOUR CODE HERE *********************** //
+    // Put in new data
+    // Data is encoded in signed PCM-16, little-endian, mono
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        bufferIn[i + FRAME_SIZE - 1] = ((uint16_t) dataBuf->buf_[2 * i]) | (((uint16_t) dataBuf->buf_[2 * i + 1]) << 8);
+        bufferIn[i + FRAME_SIZE - 1] = (float) bufferIn[i + FRAME_SIZE - 1];
+    }
 
-    int N = FRAME_SIZE;
-    // Declare fftOut outside the if block to make it accessible later
-    kiss_fft_cpx dataIn[FRAME_SIZE] = {};
-    kiss_fft_cpx fftOut[FRAME_SIZE] = {};  // Declare fftOut here
+    int N = BUFFER_SIZE;
+
+    kiss_fft_cpx dataIn[BUFFER_SIZE] = {};
+    kiss_fft_cpx fftOut[BUFFER_SIZE] = {};
 
     // Fill dataIn
     for (int i = 0; i < N; i++) {
@@ -93,19 +119,17 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
     int half_N = N / 2;
 
-    std::vector<float> denoised_magnitude(half_N, 0);
+    vector<float> denoised_magnitude(half_N, 0);
     float maxMagnitude = 0;
 
     // Determine maximum magnitude of FFT
     for (int i = 0; i < half_N; i++) {
-        denoised_magnitude[i] = std::sqrt((fftOut[i].r * fftOut[i].r) + (fftOut[i].i * fftOut[i].i));
+        denoised_magnitude[i] = sqrt((fftOut[i].r * fftOut[i].r) + (fftOut[i].i * fftOut[i].i));
         if (denoised_magnitude[i] > maxMagnitude) {
             maxMagnitude = denoised_magnitude[i];
         }
     }
 
-
-    // Good up to here!
     // Manual threshold function
     float threshold = maxMagnitude * 0.1;
     for (int i = 0; i < half_N; i++) {
@@ -119,7 +143,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
     // If denoised FFT has data type kiss_fft_cpx
 
-    std::vector<float> hps(half_N, 0.0);
+    vector<float> hps(half_N, 0.0);
 
     for (int i=0; i < half_N; i++) {
         float prod = denoised_magnitude[i];
@@ -132,46 +156,44 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         if ((8*i < half_N) && (denoised_magnitude[8*i] > 0)) {
             prod *= denoised_magnitude[8*i];
         }
-        hps[i] = std::sqrt(std::sqrt(prod));
+        hps[i] = sqrt(sqrt(prod));
     }
 
     // Calculate IPCP
     float f_ref = 130.81278265; // Define middle C (C3) as our reference freq.
-    std::vector<float> ipcp(12, 0.0);
+    vector<float> ipcp(12, 0.0);
 
     for (int k = 1; k < half_N; k++) {
         // Find p(k)
-        int p_k = int(std::round(12 * std::log2((float(k) / float(half_N)) * (F_S / f_ref)))) % 12;
+        int p_k = int(round(12 * log2((float(k) / float(half_N)) * (F_S / f_ref)))) % 12;
         // Add squared amplitude to corresponding bin
         ipcp[p_k] += hps[k] * hps[k];
     }
 
-
-
     // Square root, then normalize
     for (auto& value : ipcp) {
-        value = std::sqrt(value);
+        value = sqrt(value);
     }
-    float Z = *std::max_element(ipcp.begin(), ipcp.end());
+    float Z = *max_element(ipcp.begin(), ipcp.end());
 
 
     for (auto& value : ipcp) {
         value /= Z;
     }
 
-    // Good up until here! 
+    // Good up until here!
 
     //Circular shifting and template matching
     int NUM_CHORD_TYPES = 7;
 
-    std::vector<std::vector<float>> templates = {  // 7 Chord Types
-        {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
-        {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
-        {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
-        {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
-        {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
-        {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
-        {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
+    vector<vector<float>> templates = {  // 7 Chord Types
+            {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
+            {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
+            {0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus2
+            {0.333, -0.333, -0.333, -0.333, -0.333, 0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //sus4
+            {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25}, //7
+            {0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25}, //maj7
+            {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
     };
 
 //    float templates[7][12] = {
@@ -184,8 +206,8 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 //      {0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25,  -0.25,  -0.25,  -0.25,  0.25} //min7
 //    };
 
-    std::vector<string> prefix = {" C" , " C#/Db" , " D" , " D#/Eb" , " E" , " F" , " F#/Gb" , " G" , " G#/Ab" , " A" , " A#/Bb" , " B" , " n/a"};
-    std::vector<string> chord_types = {"  minor" , "  major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , "  n/a" };
+    vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "n/a"};
+    vector<string> chord_types = {" minor" , " major" , " sus2" , " sus4" , " 7" , " maj7" , " min7" , " " };
 
     int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a'
     float max_score = 0.0;
@@ -204,59 +226,50 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
-    //Here are the outputs
-//    std::cout<<prefix[max_info[0]];
-//    std::cout<<chord_types[max_info[1]];
-    output = prefix[max_info[0]] + chord_types[max_info[1]];
+    // Push to queues
+
+    if ((int)last_prefixes.size() >= 6) {
+        last_prefixes.pop();
+        last_chord_types.pop();
+        last_prefixes.push(max_info[0]);
+        last_chord_types.push(max_info[1]);
+    }
+    else {
+        last_prefixes.push(max_info[0]);
+        last_chord_types.push(max_info[1]);
+    }
+
+    // Find mode of each queue
+    vector<int> hist1(13);
+    vector<int> hist2(8);
+    queue<int> temp1(last_prefixes);
+    queue<int> temp2(last_chord_types);
+    for (int i=0; i < (int)last_prefixes.size(); i++) {
+        int val1 = temp1.front();
+        int val2 = temp2.front();
+        hist1[val1] += 1;
+        hist2[val2] += 1;
+        temp1.pop();
+        temp2.pop();
+    }
+
+    int mode_prefix = distance(hist1.begin(),max_element(hist1.begin(), hist1.end()));
+    int mode_chord_type = distance(hist2.begin(),max_element(hist2.begin(), hist2.end()));
+
+    output = prefix[mode_prefix] + chord_types[mode_chord_type];
 
 //    char buf[100];
 //    strcpy(buf, "Output: ");
 //    strcat(buf, output.c_str());
 //    LOGD("%s", buf);
-        // ********************* END YOUR CODE HERE ************************* //
+    // ********************* END YOUR CODE HERE ************************* //
     gettimeofday(&end, NULL);
-//    LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
+    LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 }
-
-//std::vector<int> topThreeIndices(std::vector<float> inVector) {
-//    std::vector<int> maxVector(3, 0);
-//    float first_max = 0;
-//    float second_max = 0;
-//    float third_max = 0;
-//
-//    for (int i = 0; i < inVector.size(); i++) {
-//        if (first_max < inVector[i]) {
-//            first_max = inVector[i];
-//            maxVector[0] = i;
-//        }
-//    }
-//
-//    for (int i = 0; i < inVector.size(); i++) {
-//        if ((second_max < inVector[i]) && (second_max <= first_max)){
-//            second_max = inVector[i];
-//            maxVector[1] = i;
-//        }
-//    }
-//
-//    for (int i = 0; i < inVector.size(); i++) {
-//        if ((third_max < inVector[i]) && (third_max <= second_max)){
-//            third_max = inVector[i];
-//            maxVector[2] = i;
-//        }
-//    }
-//
-//    return maxVector;
-//}
 
 JNIEXPORT jstring JNICALL
 Java_com_ece420_lab4_MainActivity_getChordUpdate(JNIEnv *env, jclass) {
     jstring tempString = env->NewStringUTF(output.c_str());
-//    const char *str = env->GetStringUTFChars(tempString, nullptr);
-//
-//    LOGD("%s", str);
-//
-//
-//// Inform the VM that the native code no longer needs access to str
-//    env->ReleaseStringUTFChars(tempString, str);
+
     return tempString;
 }
