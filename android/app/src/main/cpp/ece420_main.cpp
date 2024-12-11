@@ -46,6 +46,7 @@ int totalChordCount = 0;
 float totalTime = 0.0;
 const float RECORDING_TIME = 3.0; // measuring accuracy for 3 seconds; modify if needed
 bool RecordingComplete = false;
+bool finalAccuracyPrinted = false;
 
 
 
@@ -284,29 +285,24 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
          ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
     // Accuracy Algorithm
     totalChordCount++;
-    totalTime += (FRAME_SIZE / (float) F_S);
+    if (!RecordingComplete && output == "C major") { // Replace "C major" with your target chord if needed
+        targetChordCount++;
+    }
+
+    totalTime += (FRAME_SIZE / (float)F_S); // Increment total time processed
+
     if (totalTime >= RECORDING_TIME) {
         RecordingComplete = true;
     }
-    // Only increment target chord count for 3 seconds
-    if (!RecordingComplete && output == "C#/Db minor") {
-        targetChordCount++;
-    }
-    if (RecordingComplete) {
-        float accuracy = (float(targetChordCount) / totalChordCount) * 100;
-        LOGD("Accuracy: %.2f%%", accuracy);
 
-
-        // Reset
-        totalTime = 0.0;
-        targetChordCount = 0;
-        totalChordCount = 0;
-        RecordingComplete = false;
+    if (RecordingComplete && !finalAccuracyPrinted) {
+        float finalAccuracy = ((float)targetChordCount / totalChordCount) * 100;
+        LOGD("Final Accuracy: %.2f%%", finalAccuracy);
+        finalAccuracyPrinted = true; // Ensure it is printed only once
     }
-    else {
-        // During recording
-        float accuracy = (float(targetChordCount) / totalChordCount) * 100;
-        LOGD("Current Accuracy: %.2f%%", accuracy);
+    else if (!RecordingComplete) {
+        float currentAccuracy = ((float)targetChordCount / totalChordCount) * 100;
+        LOGD("Current Accuracy: %.2f%%", currentAccuracy);
     }
 }
 
