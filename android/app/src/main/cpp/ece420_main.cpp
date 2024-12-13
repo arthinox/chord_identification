@@ -44,18 +44,20 @@ queue<int> last_chord_types;
 int targetChordCount = 0;
 int totalChordCount = 0;
 float totalTime = 0.0;
-const float RECORDING_TIME = 3.0; // measuring accuracy for 3 seconds; modify if needed
+//const float RECORDING_TIME = 3.0; // measuring accuracy for 3 seconds; modify if needed
 bool RecordingComplete = false;
 bool finalAccuracyPrinted = false;
 
-
-
+int N = BUFFER_SIZE;
+int half_N = N / 2;
+kiss_fft_cpx dataIn[BUFFER_SIZE] = {};
+kiss_fft_cpx fftOut[BUFFER_SIZE] = {};
 
 #define NUM_CHORD_TYPES 6
 #define F_REF 130.81278265      // Middle C (C3)
 vector<string> prefix = {"C" , "C#/Db" , "D" , "D#/Eb" , "E" , "F" , "F#/Gb" , "G" , "G#/Ab" , "A" , "A#/Bb" , "B" , "No chord detected"};
 vector<string> chord_types = {" minor" , " major" , " sus2", " 7" , " maj7" , " min7" , " " };
-vector<string> allChords = {};
+//vector<string> allChords = {};
 vector<vector<float>> templates = {  // 7 Chord Types
         {0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //minor
         {0.333, -0.333, -0.333, -0.333, 0.333, -0.333, -0.333, 0.333, -0.333, -0.333, -0.333, -0.333}, //major
@@ -73,12 +75,10 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     struct timeval end;
     gettimeofday(&start, NULL);
 
-
     // Shift old data back to make room for the new data
     for (int i = 0; i < FRAME_SIZE; i++) {
         bufferIn[i] = bufferIn[i + FRAME_SIZE - 1];
     }
-
 
     // Put in new data
     // Data is encoded in signed PCM-16, little-endian, mono
@@ -88,40 +88,24 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         bufferIn[i + FRAME_SIZE - 1] = (float) bufferIn[i + FRAME_SIZE - 1];
     }
 
-
-    int N = BUFFER_SIZE;
-
-
-    kiss_fft_cpx dataIn[BUFFER_SIZE] = {};
-    kiss_fft_cpx fftOut[BUFFER_SIZE] = {};
-
-
     // Fill dataIn
     for (int i = 0; i < N; i++) {
         dataIn[i].r = bufferIn[i];
         dataIn[i].i = 0;
     }
 
-
     kiss_fft_cfg cfg1 = kiss_fft_alloc(N, 0, nullptr, nullptr);
-
 
     // Compute FFT
     kiss_fft(cfg1, dataIn, fftOut);
-
 
     free(cfg1);
 
 
     // ************** DENOISING **************** //
 
-
-    int half_N = N / 2;
-
-
     vector<float> denoised_magnitude(half_N, 0);
     float maxMagnitude = 0;
-
 
     // Determine maximum magnitude of FFT
     for (int i = 0; i < half_N; i++) {
@@ -130,7 +114,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
             maxMagnitude = denoised_magnitude[i];
         }
     }
-
 
     // Manual threshold function
     float threshold = maxMagnitude * 0.1;
@@ -143,12 +126,9 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
-
     // ************** HPS AND IPCP **************** //
 
-
     vector<float> hps(half_N, 0.0);
-
 
     for (int i = 0; i < half_N; i++) {
         float prod = denoised_magnitude[i];
@@ -164,10 +144,8 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         hps[i] = sqrt(sqrt(prod));
     }
 
-
     // Calculate IPCP
     vector<float> ipcp(12, 0.0);
-
 
     for (int k = 1; k < half_N; k++) {
         // Find p(k)
@@ -175,7 +153,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         // Add squared amplitude to corresponding bin
         ipcp[p_k] += hps[k] * hps[k];
     }
-
 
     // Square root, then normalize
     for (auto &value: ipcp) {
@@ -186,9 +163,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         value /= Z;
     }
 
-
     // ************** TEMPLATE MATCHING **************** //
-
 
     int max_info[2] = {12, NUM_CHORD_TYPES}; //defaults to 'n/a'
     float max_score = 0.0;
@@ -208,15 +183,12 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         }
     }
 
-
     if (Z < 80.0) {
         max_info[0] = 12;
         max_info[1] = NUM_CHORD_TYPES;
     }
 
-
     // ************** PROCESSING FOR DISPLAY **************** //
-
 
     // Output mode of last 6 measurements for stability
     if ((int) last_prefixes.size() >= 6) {
@@ -228,7 +200,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         last_prefixes.push(max_info[0]);
         last_chord_types.push(max_info[1]);
     }
-
 
     // Find mode of each queue
     vector<int> hist1(13);
@@ -244,24 +215,20 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         temp2.pop();
     }
 
-
     int mode_prefix = distance(hist1.begin(), max_element(hist1.begin(), hist1.end()));
     int mode_chord_type = distance(hist2.begin(), max_element(hist2.begin(), hist2.end()));
-
 
     // Output chord name
     if (mode_prefix == 12) {
         mode_chord_type = NUM_CHORD_TYPES;
     }
 
-
     output = prefix[mode_prefix] + chord_types[mode_chord_type];
-
 
     if (chord_types[mode_chord_type] == " sus2") {
         output = output + " or " + prefix[(mode_prefix + 7) % 12] + " sus4";
     }
-    allChords.push_back(output);
+//    allChords.push_back(output);
     // Output notes
     int note1 = distance(ipcp.begin(), max_element(ipcp.begin(), ipcp.end()));
     ipcp[note1] = -10;
@@ -284,26 +251,26 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     LOGD("Time delay: %ld us",
          ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
     // Accuracy Algorithm
-    totalChordCount++;
-    if (!RecordingComplete && output == "C major") { // Replace "C major" with your target chord if needed
-        targetChordCount++;
-    }
-
-    totalTime += (FRAME_SIZE / (float)F_S); // Increment total time processed
-
-    if (totalTime >= RECORDING_TIME) {
-        RecordingComplete = true;
-    }
-
-    if (RecordingComplete && !finalAccuracyPrinted) {
-        float finalAccuracy = ((float)targetChordCount / totalChordCount) * 100;
-        LOGD("Final Accuracy: %.2f%%", finalAccuracy);
-        finalAccuracyPrinted = true; // Ensure it is printed only once
-    }
-    else if (!RecordingComplete) {
-        float currentAccuracy = ((float)targetChordCount / totalChordCount) * 100;
-        LOGD("Current Accuracy: %.2f%%", currentAccuracy);
-    }
+//    totalChordCount++;
+//    if (!RecordingComplete && output == "C major") { // Replace "C major" with your target chord if needed
+//        targetChordCount++;
+//    }
+//
+//    totalTime += (FRAME_SIZE / (float)F_S); // Increment total time processed
+//
+//    if (totalTime >= RECORDING_TIME) {
+//        RecordingComplete = true;
+//    }
+//
+//    if (RecordingComplete && !finalAccuracyPrinted) {
+//        float finalAccuracy = ((float)targetChordCount / totalChordCount) * 100;
+//        LOGD("Final Accuracy: %.2f%%", finalAccuracy);
+//        finalAccuracyPrinted = true; // Ensure it is printed only once
+//    }
+//    else if (!RecordingComplete) {
+//        float currentAccuracy = ((float)targetChordCount / totalChordCount) * 100;
+//        LOGD("Current Accuracy: %.2f%%", currentAccuracy);
+//    }
 }
 
 extern "C" {
@@ -323,8 +290,5 @@ Java_com_ece420_lab4_MainActivity_getNotesUpdate(JNIEnv *env, jclass) {
 
     return tempString;
 }
-
-
-
 
 }
