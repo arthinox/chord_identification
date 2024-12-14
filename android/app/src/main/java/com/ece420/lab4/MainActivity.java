@@ -52,6 +52,7 @@ public class MainActivity extends Activity
     Button   controlButton;
     TextView statusView;
     static TextView chord_view;
+    static TextView notes_view;
     String  nativeSampleRate;
     String  nativeSampleBufSize;
     boolean supportRecording;
@@ -79,6 +80,7 @@ public class MainActivity extends Activity
 
         // Setup UI
         chord_view = (TextView)findViewById(R.id.textChord);
+        notes_view = (TextView)findViewById(R.id.textNotes);
         initializeChordTextBackgroundTask(100);
     }
     @Override
@@ -261,11 +263,13 @@ public class MainActivity extends Activity
 
         protected void onProgressUpdate(String... newChord) {
             TextView tempView = (TextView) findViewById(R.id.textChord);
+            TextView tempView2 = (TextView) findViewById(R.id.textNotes);
 
             // Updating the TextView
             tempView.setText(getChordUpdate());
+            tempView2.setText(getNotesUpdate());
 //            chord_view.setText(getChordUpdate());
-            Log.d("Chord Update: ", getChordUpdate());
+            // Log.d("Chord Update: ", getChordUpdate());
         }
 
     }
@@ -292,4 +296,5 @@ public class MainActivity extends Activity
     public static native void stopPlay();
 
     public static native String getChordUpdate();
+    public static native String getNotesUpdate();
 }
